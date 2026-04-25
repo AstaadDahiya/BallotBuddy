@@ -202,7 +202,7 @@ exports.chatProxy = onRequest({ timeoutSeconds: 60, memory: '256MiB' }, (request
 
       // ── Call Gemini API ──
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -235,7 +235,7 @@ exports.chatProxy = onRequest({ timeoutSeconds: 60, memory: '256MiB' }, (request
         language,
         latencyMs: latency,
         responseLength: assistantMessage.length,
-        modelUsed: "gemini-2.0-flash",
+        modelUsed: "gemini-2.5-flash",
         inputTokenEstimate: messages.reduce((acc, m) => acc + m.content.length, 0),
       });
 
