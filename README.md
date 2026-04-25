@@ -16,7 +16,7 @@ BallotBuddy acts as an intelligent companion that guides users through five crit
 4. **Casting Your Vote** — Step-by-step at the booth (EVM, ballot, etc.)
 5. **Results & Next Steps** — After the election
 
-We built a responsive React frontend that maintains conversational state and detects the user's progress along a "timeline" based on their interaction with the AI. The AI (powered by **Google Gemini 2.0 Flash**) provides concise, actionable, and localized advice.
+We built a responsive React frontend that maintains conversational state and detects the user's progress along a "timeline" based on their interaction with the AI. The AI (powered by **Google Gemini 2.5 Flash**) provides concise, actionable, and localized advice.
 
 To enhance usability:
 - **Location Context:** Users select their region at the start, ensuring the AI gives hyper-local advice for Indian states and international regions.
@@ -54,7 +54,7 @@ To enhance usability:
 │  • Cloud Logging (structured logs)       │
 │  • Google Maps Embed API                 │
 │  • Google Calendar API                   │
-│  • Google Gemini 2.0 Flash (Gen AI)      │
+│  • Google Gemini 2.5 Flash (Gen AI)      │
 │  • Google Fonts API                      │
 └──────────────────────────────────────────┘
 ```
@@ -94,7 +94,7 @@ To enhance usability:
 
 | Service | Purpose | Integration Point |
 |---------|---------|-------------------|
-| **Google Gemini 2.0 Flash** | Conversational AI for civic education | Cloud Function proxy (`/api/chat`) |
+| **Google Gemini 2.5 Flash** | Conversational AI for civic education | Cloud Function proxy (`/api/chat`) |
 | **Firebase Cloud Functions v2** | Serverless backend (API proxy, feedback) | `functions/index.js` — `chatProxy`, `logFeedback` |
 | **Cloud Firestore** | Usage analytics, feedback, session tracking | Server-side (`functions/`) + Client-side (`firebase.js`) |
 | **Firebase Analytics (GA4)** | User behavior tracking (events, engagement) | `firebase.js` — 10+ custom events |
@@ -270,7 +270,7 @@ BallotBuddy/
 |-------|------------|
 | Frontend | React 19, Vite 8, Vanilla CSS |
 | Backend | Firebase Cloud Functions v2, Node.js 20 |
-| AI | Google Gemini 2.0 Flash |
+| AI | Google Gemini 2.5 Flash |
 | Database | Cloud Firestore |
 | Analytics | Firebase Analytics (GA4) |
 | Performance | Firebase Performance Monitoring |
