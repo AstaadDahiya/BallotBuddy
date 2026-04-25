@@ -1,0 +1,82 @@
+import { REGIONS } from '../constants';
+
+/**
+ * HomeScreen — Region selector + CTA to start the election journey.
+ */
+export default function HomeScreen({ region, onRegionChange, onStart }) {
+  return (
+    <main className="home-screen" role="main">
+      <div className="home-card">
+        <div className="home-badge">
+          <span aria-hidden="true">✨</span>
+          AI-Powered Civic Education
+        </div>
+
+        <h1 className="home-title">Your Election Journey Starts Here</h1>
+
+        <p className="home-subtitle">
+          BallotBuddy walks you through every step of the election process —
+          from registration to results — with a friendly AI assistant by your side.
+        </p>
+
+        <form
+          className="home-form"
+          onSubmit={(e) => { e.preventDefault(); if (region) onStart(); }}
+        >
+          <div className="form-group">
+            <label htmlFor="region-select" className="form-label">
+              Select your region
+            </label>
+            <select
+              id="region-select"
+              className="form-select"
+              value={region}
+              onChange={(e) => onRegionChange(e.target.value)}
+              aria-label="Select your country or state"
+              required
+            >
+              <option value="">— Choose your state / country —</option>
+              {REGIONS.map((group) => (
+                <optgroup key={group.group} label={group.group}>
+                  {group.options.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={!region}
+            aria-label="Start your election journey"
+            id="start-journey-btn"
+          >
+            <span aria-hidden="true">🚀</span>
+            Start My Election Journey
+          </button>
+        </form>
+
+        <div className="home-features">
+          <div className="home-feature">
+            <span className="home-feature-icon" aria-hidden="true">📋</span>
+            <span className="home-feature-text">Registration</span>
+          </div>
+          <div className="home-feature">
+            <span className="home-feature-icon" aria-hidden="true">🔍</span>
+            <span className="home-feature-text">Candidates</span>
+          </div>
+          <div className="home-feature">
+            <span className="home-feature-icon" aria-hidden="true">🗳️</span>
+            <span className="home-feature-text">Voting Day</span>
+          </div>
+          <div className="home-feature">
+            <span className="home-feature-icon" aria-hidden="true">📊</span>
+            <span className="home-feature-text">Results</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}

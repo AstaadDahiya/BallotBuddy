@@ -1,0 +1,63 @@
+import { LANGUAGES } from '../constants';
+
+/**
+ * AccessibilityControls — Font size toggle + language selector.
+ */
+export default function AccessibilityControls({
+  fontSize,
+  onFontSizeChange,
+  language,
+  onLanguageChange,
+}) {
+  return (
+    <div className="a11y-controls">
+      {/* Font Size Toggle */}
+      <div className="form-group">
+        <span className="form-label" id="font-size-label">Text Size</span>
+        <div className="font-toggle" role="radiogroup" aria-labelledby="font-size-label">
+          <button
+            className={`font-toggle-btn ${fontSize === 'normal' ? 'active' : ''}`}
+            onClick={() => onFontSizeChange('normal')}
+            role="radio"
+            aria-checked={fontSize === 'normal'}
+            aria-label="Normal text size"
+            id="font-toggle-normal"
+          >
+            A
+          </button>
+          <button
+            className={`font-toggle-btn ${fontSize === 'large' ? 'active' : ''}`}
+            onClick={() => onFontSizeChange('large')}
+            role="radio"
+            aria-checked={fontSize === 'large'}
+            aria-label="Large text size"
+            id="font-toggle-large"
+            style={{ fontSize: '1.15em' }}
+          >
+            A+
+          </button>
+        </div>
+      </div>
+
+      {/* Language Selector */}
+      <div className="form-group">
+        <label htmlFor="language-select" className="form-label">
+          Language
+        </label>
+        <select
+          id="language-select"
+          className="form-select"
+          value={language}
+          onChange={(e) => onLanguageChange(e.target.value)}
+          aria-label="Select response language"
+        >
+          {LANGUAGES.map((lang) => (
+            <option key={lang.code} value={lang.name}>
+              {lang.native} — {lang.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
