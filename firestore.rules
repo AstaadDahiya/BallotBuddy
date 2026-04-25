@@ -1,0 +1,45 @@
+rules_version = '2';
+
+/**
+ * Cloud Firestore Security Rules for BallotBuddy
+ *
+ * Collections:
+ *   - usage_stats: Server-only (Cloud Functions write, no client access)
+ *   - user_feedback: Client can create, server can read/update
+ *   - session_analytics: Client can create, server can read
+ *
+ * Security model:
+ *   - No client-side reads of usage_stats (sensitive analytics)
+ *   - Feedback limited to create-only (no reading other users' feedback)
+ *   - Session analytics limited to create-only
+ *   - All other collections denied by default
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Usage statistics — server-side only (Cloud Functions via Admin SDK)
+    match /usage_stats/{document} {
+      allow read, write: if false;
+    }
+
+    // User feedback — clients can submit, cannot read others' feedback
+    match /user_feedback/{document} {
+      allow create: if request.resource.data.keys().hasAll(['type', 'timestamp'])
+                    && request.resource.data.type is string
+                    && request.resource.data.type.size() <= 50;
+      allow read, update, delete: if false;
+    }
+
+    // Session analytics — clients can submit session summaries
+    match /session_analytics/{document} {
+      allow create: if request.resource.data.keys().hasAll(['region', 'messageCount', 'timestamp'])
+                    && request.resource.data.messageCount is number;
+      allow read, update, delete: if false;
+    }
+
+    // Default: deny all access to undefined collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -6,6 +6,9 @@ import { detectStep } from './utils';
 // Mock the analytics module to prevent Firebase initialization in tests
 vi.mock('./analytics', () => ({
   logEvent: vi.fn(),
+  startPerformanceTrace: vi.fn(() => null),
+  logFeedback: vi.fn(() => Promise.resolve(null)),
+  logSessionAnalytics: vi.fn(() => Promise.resolve()),
   AnalyticsEvents: {
     journeyStarted: vi.fn(),
     messageSent: vi.fn(),
@@ -15,6 +18,9 @@ vi.mock('./analytics', () => ({
     languageChanged: vi.fn(),
     fontSizeChanged: vi.fn(),
     journeyReset: vi.fn(),
+    pageView: vi.fn(),
+    errorOccurred: vi.fn(),
+    aiResponseTime: vi.fn(),
   },
   default: {
     journeyStarted: vi.fn(),
@@ -25,6 +31,43 @@ vi.mock('./analytics', () => ({
     languageChanged: vi.fn(),
     fontSizeChanged: vi.fn(),
     journeyReset: vi.fn(),
+    pageView: vi.fn(),
+    errorOccurred: vi.fn(),
+    aiResponseTime: vi.fn(),
+  },
+}));
+
+// Mock firebase.js to prevent actual Firebase initialization in tests
+vi.mock('./firebase.js', () => ({
+  logEvent: vi.fn(),
+  startPerformanceTrace: vi.fn(() => null),
+  logFeedback: vi.fn(() => Promise.resolve(null)),
+  logSessionAnalytics: vi.fn(() => Promise.resolve()),
+  AnalyticsEvents: {
+    journeyStarted: vi.fn(),
+    messageSent: vi.fn(),
+    regionSelected: vi.fn(),
+    pollingStationSearch: vi.fn(),
+    calendarEventAdded: vi.fn(),
+    languageChanged: vi.fn(),
+    fontSizeChanged: vi.fn(),
+    journeyReset: vi.fn(),
+    pageView: vi.fn(),
+    errorOccurred: vi.fn(),
+    aiResponseTime: vi.fn(),
+  },
+  default: {
+    journeyStarted: vi.fn(),
+    messageSent: vi.fn(),
+    regionSelected: vi.fn(),
+    pollingStationSearch: vi.fn(),
+    calendarEventAdded: vi.fn(),
+    languageChanged: vi.fn(),
+    fontSizeChanged: vi.fn(),
+    journeyReset: vi.fn(),
+    pageView: vi.fn(),
+    errorOccurred: vi.fn(),
+    aiResponseTime: vi.fn(),
   },
 }));
 
@@ -124,5 +167,21 @@ describe('BallotBuddy App', () => {
     expect(screen.getByText('Accessibility')).toBeInTheDocument();
     expect(screen.getByText('Text Size')).toBeInTheDocument();
     expect(screen.getByText('Language')).toBeInTheDocument();
+  });
+
+  it('renders the region selector with Indian states', () => {
+    render(<App />);
+    const select = screen.getByLabelText(/Select your region/i);
+    expect(select).toBeInTheDocument();
+    expect(select.querySelectorAll('optgroup').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('persists region in localStorage when selected', () => {
+    render(<App />);
+    const select = screen.getByLabelText(/Select your region/i);
+    fireEvent.change(select, { target: { value: 'India — Karnataka' } });
+    const stored = localStorage.getItem('ballotbuddy_region');
+    expect(stored).toBeTruthy();
+    expect(JSON.parse(stored)).toBe('India — Karnataka');
   });
 });

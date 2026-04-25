@@ -1,25 +1,41 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { AnalyticsEvents } from '../analytics';
 
 /**
  * PollingStationFinder — ZIP/pincode input + Google Maps embed for nearby polling stations.
+ *
+ * Google Services Used:
+ *   - Google Maps Embed API (real-time map rendering)
+ *   - Firebase Analytics (polling station search tracking)
+ *
+ * @param {Object} props
+ * @param {string} props.googleMapsApiKey - Google Maps API key for the embed
+ * @returns {JSX.Element}
  */
-export default function PollingStationFinder({ googleMapsApiKey }) {
+function PollingStationFinder({ googleMapsApiKey }) {
   const [pincode, setPincode] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleSearch = () => {
+  /** Execute polling station search and log analytics */
+  const handleSearch = useCallback(() => {
     if (pincode.trim()) {
       setSearchQuery(pincode.trim());
       AnalyticsEvents.pollingStationSearch(pincode.trim());
     }
-  };
+  }, [pincode]);
 
-  const handleKeyDown = (e) => {
+  /** Handle Enter key for quick search */
+  const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter') handleSearch();
-  };
+  }, [handleSearch]);
 
+  /** Handle pincode input change */
+  const handlePincodeChange = useCallback((e) => {
+    setPincode(e.target.value);
+  }, []);
+
+  /** Google Maps Embed API URL */
   const mapSrc = searchQuery
     ? `https://www.google.com/maps/embed/v1/search?key=${googleMapsApiKey}&q=polling+station+near+${encodeURIComponent(searchQuery)}`
     : '';
@@ -32,7 +48,7 @@ export default function PollingStationFinder({ googleMapsApiKey }) {
           className="form-input"
           placeholder="Enter PIN / ZIP code"
           value={pincode}
-          onChange={(e) => setPincode(e.target.value)}
+          onChange={handlePincodeChange}
           onKeyDown={handleKeyDown}
           aria-label="Enter your PIN code or ZIP code to find nearby polling stations"
           id="polling-pincode-input"
@@ -68,3 +84,5 @@ PollingStationFinder.propTypes = {
   /** Google Maps API key for the embed */
   googleMapsApiKey: PropTypes.string.isRequired,
 };
+
+export default memo(PollingStationFinder);

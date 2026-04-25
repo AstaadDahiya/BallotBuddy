@@ -1,10 +1,18 @@
+import { memo } from 'react';
 import PropTypes from 'prop-types';
 import { REGIONS } from '../constants';
 
 /**
  * HomeScreen — Region selector + CTA to start the election journey.
+ * Memoized to prevent re-renders when unrelated parent state changes.
+ *
+ * @param {Object} props
+ * @param {string} props.region - The currently selected region
+ * @param {Function} props.onRegionChange - Callback when user changes region
+ * @param {Function} props.onStart - Callback when user clicks Start
+ * @returns {JSX.Element}
  */
-export default function HomeScreen({ region, onRegionChange, onStart }) {
+function HomeScreen({ region, onRegionChange, onStart }) {
   return (
     <main className="home-screen" role="main">
       <div className="home-card">
@@ -90,3 +98,5 @@ HomeScreen.propTypes = {
   /** Callback when user clicks the Start button */
   onStart: PropTypes.func.isRequired,
 };
+
+export default memo(HomeScreen);

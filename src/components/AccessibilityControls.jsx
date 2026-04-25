@@ -1,15 +1,44 @@
+import { memo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { LANGUAGES } from '../constants';
 
 /**
  * AccessibilityControls — Font size toggle + language selector.
+ * Memoized to prevent re-renders when chat state changes.
+ *
+ * Accessibility features:
+ *   - ARIA radiogroup for font size toggle
+ *   - Proper labeling with htmlFor/aria-labelledby
+ *   - Focus-visible styles for keyboard navigation
+ *
+ * @param {Object} props
+ * @param {string} props.fontSize - Current font size ('normal'|'large')
+ * @param {Function} props.onFontSizeChange - Font size change callback
+ * @param {string} props.language - Currently selected language name
+ * @param {Function} props.onLanguageChange - Language change callback
+ * @returns {JSX.Element}
  */
-export default function AccessibilityControls({
+function AccessibilityControls({
   fontSize,
   onFontSizeChange,
   language,
   onLanguageChange,
 }) {
+  /** Handle normal font size selection */
+  const handleNormalFont = useCallback(() => {
+    onFontSizeChange('normal');
+  }, [onFontSizeChange]);
+
+  /** Handle large font size selection */
+  const handleLargeFont = useCallback(() => {
+    onFontSizeChange('large');
+  }, [onFontSizeChange]);
+
+  /** Handle language selection change */
+  const handleLanguageSelect = useCallback((e) => {
+    onLanguageChange(e.target.value);
+  }, [onLanguageChange]);
+
   return (
     <div className="a11y-controls">
       {/* Font Size Toggle */}
@@ -18,7 +47,7 @@ export default function AccessibilityControls({
         <div className="font-toggle" role="radiogroup" aria-labelledby="font-size-label">
           <button
             className={`font-toggle-btn ${fontSize === 'normal' ? 'active' : ''}`}
-            onClick={() => onFontSizeChange('normal')}
+            onClick={handleNormalFont}
             role="radio"
             aria-checked={fontSize === 'normal'}
             aria-label="Normal text size"
@@ -28,7 +57,7 @@ export default function AccessibilityControls({
           </button>
           <button
             className={`font-toggle-btn ${fontSize === 'large' ? 'active' : ''}`}
-            onClick={() => onFontSizeChange('large')}
+            onClick={handleLargeFont}
             role="radio"
             aria-checked={fontSize === 'large'}
             aria-label="Large text size"
@@ -49,7 +78,7 @@ export default function AccessibilityControls({
           id="language-select"
           className="form-select"
           value={language}
-          onChange={(e) => onLanguageChange(e.target.value)}
+          onChange={handleLanguageSelect}
           aria-label="Select response language"
         >
           {LANGUAGES.map((lang) => (
@@ -73,3 +102,5 @@ AccessibilityControls.propTypes = {
   /** Callback when language changes */
   onLanguageChange: PropTypes.func.isRequired,
 };
+
+export default memo(AccessibilityControls);

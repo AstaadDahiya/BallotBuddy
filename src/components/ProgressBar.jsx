@@ -1,10 +1,16 @@
+import { memo } from 'react';
 import PropTypes from 'prop-types';
 import { TIMELINE_STEPS } from '../constants';
 
 /**
  * ProgressBar — Fixed header with logo, progress track, and step dots.
+ * Memoized to prevent re-renders when sibling state changes.
+ *
+ * @param {Object} props
+ * @param {number} props.currentStep - The current active step (1-5)
+ * @returns {JSX.Element}
  */
-export default function ProgressBar({ currentStep }) {
+function ProgressBar({ currentStep }) {
   const progress = ((currentStep - 1) / (TIMELINE_STEPS.length - 1)) * 100;
 
   return (
@@ -52,3 +58,5 @@ ProgressBar.propTypes = {
   /** The current active step (1-5) */
   currentStep: PropTypes.number.isRequired,
 };
+
+export default memo(ProgressBar);

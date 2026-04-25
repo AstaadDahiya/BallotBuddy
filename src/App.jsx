@@ -1,19 +1,63 @@
-import { useEffect, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import ProgressBar from './components/ProgressBar';
 import Sidebar from './components/Sidebar';
 import HomeScreen from './components/HomeScreen';
-import ChatPanel from './components/ChatPanel';
 import useChat from './hooks/useChat';
 import usePersistentState from './hooks/usePersistentState';
-import { AnalyticsEvents } from './analytics';
+import { AnalyticsEvents, logSessionAnalytics } from './analytics';
 import { detectStep } from './utils';
 
+/**
+ * Lazy-load ChatPanel for code-splitting.
+ * ChatPanel is only needed after the user starts their journey,
+ * so we defer its loading to reduce initial bundle size.
+ */
+const ChatPanel = lazy(() => import('./components/ChatPanel'));
+
+/** Google Maps API key from environment */
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
+/**
+ * Loading fallback for lazy-loaded components.
+ * Displays a minimal skeleton matching the chat panel dimensions.
+ * @returns {JSX.Element}
+ */
+function ChatLoadingFallback() {
+  return (
+    <div
+      className="chat-panel"
+      role="status"
+      aria-label="Loading chat interface"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: 0.7,
+      }}
+    >
+      <div className="typing-indicator" aria-label="Loading">
+        <div className="typing-dot" />
+        <div className="typing-dot" />
+        <div className="typing-dot" />
+      </div>
+    </div>
+  );
+}
 
-
+/**
+ * App — Root component for BallotBuddy.
+ *
+ * Architecture:
+ *   - Uses custom hooks (useChat, usePersistentState) for separation of concerns
+ *   - Derives step from messages via useMemo (no unnecessary re-renders)
+ *   - Lazy-loads ChatPanel via React.lazy for optimal code splitting
+ *   - Tracks analytics via Firebase Analytics (GA4) and Performance Monitoring
+ *   - Logs session data to Cloud Firestore on journey completion
+ *
+ * @returns {JSX.Element}
+ */
 export default function App() {
-  // Persistent state via custom hook
+  // Persistent state via custom hook (survives page reloads)
   const [region, setRegion, clearRegion] = usePersistentState('ballotbuddy_region', '');
   const [started, setStarted, clearStarted] = usePersistentState('ballotbuddy_started', false);
   const [fontSize, setFontSize] = usePersistentState('ballotbuddy_fontSize', 'normal');
@@ -22,7 +66,7 @@ export default function App() {
   // Chat state via custom hook
   const { messages, setMessages, isLoading, sendMessage, startChat, resetChat } = useChat(region, language);
 
-  // Restore persisted messages on mount (ref avoids setState-in-effect lint)
+  // Restore persisted messages on mount (ref prevents double-restore in StrictMode)
   const hasRestoredRef = useRef(false);
   useEffect(() => {
     if (!hasRestoredRef.current) {
@@ -36,12 +80,12 @@ export default function App() {
           }
         }
       } catch {
-        // noop
+        // corrupted data — silently ignore
       }
     }
   }, [setMessages]);
 
-  // Persist messages on change
+  // Persist messages on change (debounced by React's batching)
   useEffect(() => {
     if (hasRestoredRef.current) {
       try {
@@ -52,53 +96,75 @@ export default function App() {
     }
   }, [messages]);
 
-  // Derive current step from messages (pure computation, no useEffect + setState)
+  /**
+   * Derive current step from messages.
+   * Pure computation via useMemo — avoids useEffect + setState anti-pattern.
+   */
   const currentStep = useMemo(() => {
     if (messages.length === 0) return 1;
     return detectStep(messages);
   }, [messages]);
 
-  // Apply font size class to HTML element
+  // Apply font size class to HTML element (CSS custom property toggle)
   useEffect(() => {
     document.documentElement.classList.toggle('font-large', fontSize === 'large');
   }, [fontSize]);
 
   /**
-   * Handle region change with analytics tracking.
+   * Log session analytics to Cloud Firestore when the journey progresses.
+   * Runs asynchronously, does not block the UI.
    */
+  useEffect(() => {
+    if (started && messages.length > 2 && messages.length % 5 === 0) {
+      logSessionAnalytics({
+        region,
+        language,
+        messageCount: messages.length,
+        stepsCompleted: currentStep,
+      });
+    }
+  }, [messages.length, started, region, language, currentStep]);
+
+  // ──────────────────────────────────────────────
+  // Event Handlers (memoized to prevent child re-renders)
+  // ──────────────────────────────────────────────
+
+  /** Handle region selection with analytics tracking */
   const handleRegionChange = useCallback((newRegion) => {
     setRegion(newRegion);
     AnalyticsEvents.regionSelected(newRegion);
   }, [setRegion]);
 
-  /**
-   * Handle font size change with analytics tracking.
-   */
+  /** Handle font size toggle with analytics tracking */
   const handleFontSizeChange = useCallback((newSize) => {
     setFontSize(newSize);
     AnalyticsEvents.fontSizeChanged(newSize);
   }, [setFontSize]);
 
-  /**
-   * Handle language change with analytics tracking.
-   */
+  /** Handle language selection with analytics tracking */
   const handleLanguageChange = useCallback((newLang) => {
     setLanguage(newLang);
     AnalyticsEvents.languageChanged(newLang);
   }, [setLanguage]);
 
-  /**
-   * Start the journey — send initial greeting to AI.
-   */
+  /** Start the election journey — send initial greeting to AI */
   const handleStart = useCallback(async () => {
     setStarted(true);
     await startChat();
   }, [setStarted, startChat]);
 
-  /**
-   * Reset the journey.
-   */
+  /** Reset the journey — clear all state and localStorage */
   const handleReset = useCallback(() => {
+    // Log session summary before reset
+    if (messages.length > 0) {
+      logSessionAnalytics({
+        region,
+        language,
+        messageCount: messages.length,
+        stepsCompleted: currentStep,
+      });
+    }
+
     setStarted(false);
     resetChat();
     clearRegion();
@@ -109,7 +175,7 @@ export default function App() {
       // noop
     }
     AnalyticsEvents.journeyReset();
-  }, [setStarted, resetChat, clearRegion, clearStarted]);
+  }, [setStarted, resetChat, clearRegion, clearStarted, messages, region, language, currentStep]);
 
   return (
     <div className="app-layout">
@@ -134,11 +200,13 @@ export default function App() {
             onStart={handleStart}
           />
         ) : (
-          <ChatPanel
-            messages={messages}
-            onSendMessage={sendMessage}
-            isLoading={isLoading}
-          />
+          <Suspense fallback={<ChatLoadingFallback />}>
+            <ChatPanel
+              messages={messages}
+              onSendMessage={sendMessage}
+              isLoading={isLoading}
+            />
+          </Suspense>
         )}
       </div>
     </div>

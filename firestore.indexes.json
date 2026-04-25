@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "usage_stats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "date", "order": "DESCENDING" },
+        { "fieldPath": "region", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "session_analytics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "timestamp", "order": "DESCENDING" },
+        { "fieldPath": "region", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
