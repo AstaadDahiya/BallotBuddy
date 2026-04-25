@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { TIMELINE_STEPS } from '../constants';
 
 /**
@@ -46,3 +47,8 @@ export default function ProgressBar({ currentStep }) {
     </header>
   );
 }
+
+ProgressBar.propTypes = {
+  /** The current active step (1-5) */
+  currentStep: PropTypes.number.isRequired,
+};

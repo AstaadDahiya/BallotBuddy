@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import CalendarButton from './CalendarButton';
 
 /**
@@ -97,3 +98,17 @@ export default function ChatPanel({
     </div>
   );
 }
+
+ChatPanel.propTypes = {
+  /** Array of message objects with role ('user'|'assistant') and content */
+  messages: PropTypes.arrayOf(
+    PropTypes.shape({
+      role: PropTypes.oneOf(['user', 'assistant']).isRequired,
+      content: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  /** Callback when user sends a message */
+  onSendMessage: PropTypes.func.isRequired,
+  /** Whether the AI is currently generating a response */
+  isLoading: PropTypes.bool.isRequired,
+};

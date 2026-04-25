@@ -1,4 +1,6 @@
+import PropTypes from 'prop-types';
 import { DATE_PATTERNS, parseDateString, generateCalendarUrl } from '../constants';
+import { AnalyticsEvents } from '../analytics';
 
 /**
  * CalendarButton — Detects dates in text and renders a Google Calendar link.
@@ -28,6 +30,10 @@ export default function CalendarButton({ text }) {
     parsed
   );
 
+  const handleClick = () => {
+    AnalyticsEvents.calendarEventAdded(dateStr);
+  };
+
   return (
     <div className="calendar-btn-wrapper">
       <a
@@ -37,6 +43,7 @@ export default function CalendarButton({ text }) {
         className="calendar-btn"
         aria-label={`Add ${dateStr} to Google Calendar`}
         role="button"
+        onClick={handleClick}
       >
         <span aria-hidden="true">📅</span>
         Add to My Calendar
@@ -44,3 +51,8 @@ export default function CalendarButton({ text }) {
     </div>
   );
 }
+
+CalendarButton.propTypes = {
+  /** The text content to scan for dates */
+  text: PropTypes.string.isRequired,
+};

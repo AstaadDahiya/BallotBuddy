@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { TIMELINE_STEPS } from '../constants';
 import PollingStationFinder from './PollingStationFinder';
 import AccessibilityControls from './AccessibilityControls';
@@ -82,3 +83,22 @@ export default function Sidebar({
     </aside>
   );
 }
+
+Sidebar.propTypes = {
+  /** Current active step (1-5) */
+  currentStep: PropTypes.number.isRequired,
+  /** Whether the user has started their journey */
+  started: PropTypes.bool.isRequired,
+  /** Current font size setting */
+  fontSize: PropTypes.oneOf(['normal', 'large']).isRequired,
+  /** Callback to change font size */
+  onFontSizeChange: PropTypes.func.isRequired,
+  /** Currently selected language name */
+  language: PropTypes.string.isRequired,
+  /** Callback to change language */
+  onLanguageChange: PropTypes.func.isRequired,
+  /** Google Maps API key for polling station finder */
+  googleMapsApiKey: PropTypes.string.isRequired,
+  /** Callback to reset the journey */
+  onReset: PropTypes.func.isRequired,
+};

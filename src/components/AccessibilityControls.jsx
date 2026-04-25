@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { LANGUAGES } from '../constants';
 
 /**
@@ -61,3 +62,14 @@ export default function AccessibilityControls({
     </div>
   );
 }
+
+AccessibilityControls.propTypes = {
+  /** Current font size setting */
+  fontSize: PropTypes.oneOf(['normal', 'large']).isRequired,
+  /** Callback when font size changes */
+  onFontSizeChange: PropTypes.func.isRequired,
+  /** Currently selected language name */
+  language: PropTypes.string.isRequired,
+  /** Callback when language changes */
+  onLanguageChange: PropTypes.func.isRequired,
+};

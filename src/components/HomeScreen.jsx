@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { REGIONS } from '../constants';
 
 /**
@@ -80,3 +81,12 @@ export default function HomeScreen({ region, onRegionChange, onStart }) {
     </main>
   );
 }
+
+HomeScreen.propTypes = {
+  /** The currently selected region */
+  region: PropTypes.string.isRequired,
+  /** Callback when user changes region selection */
+  onRegionChange: PropTypes.func.isRequired,
+  /** Callback when user clicks the Start button */
+  onStart: PropTypes.func.isRequired,
+};

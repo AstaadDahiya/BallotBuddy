@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
+import { AnalyticsEvents } from '../analytics';
+
 /**
  * PollingStationFinder — ZIP/pincode input + Google Maps embed for nearby polling stations.
  */
@@ -9,6 +12,7 @@ export default function PollingStationFinder({ googleMapsApiKey }) {
   const handleSearch = () => {
     if (pincode.trim()) {
       setSearchQuery(pincode.trim());
+      AnalyticsEvents.pollingStationSearch(pincode.trim());
     }
   };
 
@@ -59,3 +63,8 @@ export default function PollingStationFinder({ googleMapsApiKey }) {
     </div>
   );
 }
+
+PollingStationFinder.propTypes = {
+  /** Google Maps API key for the embed */
+  googleMapsApiKey: PropTypes.string.isRequired,
+};
